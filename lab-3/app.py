@@ -34,7 +34,7 @@ logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO))
 
 app = Flask(__name__)
 
-# Создаются один раз при запуске приложения (п. 4.1.4)
+# Создаются один раз при запуске приложения
 clock = SystemClock()
 clock.move_to(datetime(2026, 10, 19, 9, 0))
 rooms_repo = InMemoryRoomRepository()
@@ -64,7 +64,7 @@ event_history: dict[int, list[dict[str, Any]]] = {}
 
 
 def _serialize_event(ev: object) -> dict[str, Any]:
-    raw = asdict(ev)  # type: ignore[arg-type]
+    raw = asdict(ev) 
     out: dict[str, Any] = {"event": type(ev).__name__}
     for k, v in raw.items():
         if hasattr(v, "value"):
@@ -100,7 +100,7 @@ def _parse_iso_dt(raw: Any, field: str) -> datetime:
         raise InvalidValueObject(f"Некорректный формат даты в '{field}'") from exc
 
 
-# Общий обработчик исключений (Таблица 7)
+# Общий обработчик исключений
 @app.errorhandler(TransitionNotAllowed)
 def handle_transition_not_allowed(exc: TransitionNotAllowed):
     return jsonify({"error": "TRANSITION_NOT_ALLOWED", "message": str(exc)}), 409

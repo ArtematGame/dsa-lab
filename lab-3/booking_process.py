@@ -1,4 +1,3 @@
-# Прикладной слой Связывает BPMN-схему с доменом загружает агрегаты, берет их методы-события, сохраняет обратно, публикует события
 
 from __future__ import annotations
 
@@ -29,7 +28,7 @@ class BookingProcess:
         bookings: BookingRepository,
         clock: Clock | None = None,
     ) -> None:
-        # Репозитории и часы приходят снаружи сервис их не создаёт
+        # Репозитории и часы приходят снаружи сервис
         self._rooms = rooms
         self._bookings = bookings
         self._clock: Clock = clock or _SystemClock()
@@ -48,7 +47,7 @@ class BookingProcess:
         return events
 
     def _save(self, booking: Booking) -> None:
-        # Сохраняем бронь и сразу выгребаем её события в свой буфер
+        # Сохраняем бронь и сразу берём её события в свой буфер
         # Так адаптер может потом прочитать их одним вызовом pull_events()
         self._bookings.save(booking)
         for event in booking.pull_events():
@@ -140,7 +139,7 @@ class BookingProcess:
     ) -> bool:
         return self.has_large_room_restriction(employee_id, now)
 
-    # Отдельные задачи проверки (для пошагового вызова из BPMN)
+    # Отдельные задачи проверки
 
     def check_large_room_permission(
         self, booking_id: BookingId, now: datetime
@@ -164,7 +163,6 @@ class BookingProcess:
         return self.is_room_available(booking)
 
     # Маршрутизация начальных шлюзов. 
-    # Порядок проверок важен: сначала ограничения, потом физическая возможность, потом согласование.
 
     def process_initial_checks(
         self, booking_id: BookingId, now: datetime
@@ -247,7 +245,7 @@ class BookingProcess:
 
     def send_admin_request(self, booking_id: BookingId) -> AdminOrderRequested:
         booking = self._bookings.get(booking_id)
-        # Если заказ администратору не нужен это ошибка шлюза, а не доменное правило
+        # Если заказ администратору не нужен это ошибка шлюза
         if not self.needs_admin_order(booking):
             raise GatewayUnresolved(
                 "Ветка администратора не применяется: оборудование и кейтеринг не требуются"

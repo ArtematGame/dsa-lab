@@ -1,6 +1,3 @@
-# Тесты прикладного сервиса и доменной модели.
-# Покрывают инварианты ЛР2 и переходы жизненного цикла из ЛР3.
-
 import unittest
 from datetime import datetime, time, timedelta
 
@@ -55,7 +52,6 @@ class BookingProcessTests(unittest.TestCase):
         self.start = datetime(2026, 10, 20, 10, 0)
         self.period = BookingPeriod(self.start, self.start + timedelta(hours=2))
 
-    # Удобный хелпер, чтобы не писать по 10 строк в каждом тесте.
     def create(
         self,
         booking_id=1,
@@ -76,24 +72,22 @@ class BookingProcessTests(unittest.TestCase):
             needs_catering=catering,
         )
 
-    # Хелпер: провести заявку до состояния ready без согласования.
+    # провести заявку до состояния ready без согласования.
     def prepare_without_approval(self, booking_id=1):
         self.process.process_initial_checks(
             BookingId(booking_id), datetime(2026, 10, 19, 12, 0)
         )
         return self.process.confirm_room(BookingId(booking_id))
 
-    # --- Базовые проверки состояния ---
-
     def test_state_is_read_only(self):
-        # Пытаемся присвоить state — должно упасть AttributeError,
+        # Пытаемся присвоить state должно упасть AttributeError,
         # потому что сеттера у свойства нет.
         booking = self.create()
         with self.assertRaises(AttributeError):
             booking.state = "ready"  # type: ignore[misc]
 
     def test_invalid_transition_raises_transition_not_allowed(self):
-        # В submitted нельзя check_in — ждём TransitionNotAllowed
+        # В submitted нельзя check_in ждём TransitionNotAllowed
         # с понятным сообщением.
         booking = self.create()
         with self.assertRaises(TransitionNotAllowed) as ctx:
@@ -101,10 +95,10 @@ class BookingProcessTests(unittest.TestCase):
         self.assertIn("submitted", str(ctx.exception))
         self.assertIn("check_in", str(ctx.exception))
 
-    # --- Инварианты ---
+    # Инварианты
 
     def test_capacity_rule_rejects_request(self):
-        # 11 человек в комнату на 10 — отказ.
+        # 11 человек в комнату на 10 отказ.
         self.create(participants=11)
         booking = self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
@@ -113,7 +107,7 @@ class BookingProcessTests(unittest.TestCase):
         self.assertIn("вместимость", booking.rejection_reason)
 
     def test_office_hours_rule_rejects_request(self):
-        # Бронь с 8:30 — вне рабочих часов (с 9:00).
+        # Бронь с 8:30 вне рабочих часов
         early = BookingPeriod(
             datetime(2026, 10, 20, 8, 30),
             datetime(2026, 10, 20, 10, 0),
@@ -145,10 +139,10 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("rejected", booking.state)
         self.assertIn("занята", booking.rejection_reason)
 
-    # --- Согласование ---
+    # Согласование
 
     def test_large_room_requires_approval_and_publishes_message(self):
-        # Крупная комната → состояние under_approval + событие ApprovalRequested.
+        # Крупная комната - состояние under_approval + событие ApprovalRequested.
         self.create(room_id=2, participants=8)
         booking = self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
@@ -159,7 +153,7 @@ class BookingProcessTests(unittest.TestCase):
         self.assertIsInstance(events[0], ApprovalRequested)
 
     def test_more_than_four_hours_requires_approval(self):
-        # Даже маленькая комната, но встреча 5 часов → согласование.
+        # Даже маленькая комната, но встреча 5 часов - согласование.
         long_period = BookingPeriod(
             self.start,
             self.start + timedelta(hours=5),
@@ -171,7 +165,7 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("under_approval", booking.state)
 
     def test_approval_timeout_after_24_hours_rejects(self):
-        # Согласование запросили в 10:00, ответа нет 24 часа → отказ.
+        # Согласование запросили в 10:00, ответа нет 24 часа - отказ.
         self.create(room_id=2)
         requested_at = datetime(2026, 10, 18, 10, 0)
         self.process.process_initial_checks(BookingId(1), requested_at)
@@ -191,7 +185,7 @@ class BookingProcessTests(unittest.TestCase):
             )
 
     def test_manager_approval_moves_to_preparing(self):
-        # Руководитель согласовал → preparing.
+        # Руководитель согласовал - preparing.
         self.create(room_id=2)
         self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
@@ -199,18 +193,16 @@ class BookingProcessTests(unittest.TestCase):
         booking = self.process.approve_by_manager(BookingId(1))
         self.assertEqual("preparing", booking.state)
 
-    # --- Параллельные ветви подготовки ---
+    # Параллельные ветви подготовки
 
     def test_without_admin_order_room_confirmation_makes_ready(self):
-        # Если админ-заказ не нужен, достаточно подтвердить комнату → ready.
+        # Если админ-заказ не нужен, достаточно подтвердить комнату ready.
         self.create()
         booking = self.prepare_without_approval()
         self.assertEqual("ready", booking.state)
         self.assertTrue(booking.room_confirmed)
 
     def test_parallel_branch_stays_visible_until_both_done(self):
-        # Нужны и комната, и админ-заказ. Пока одно не закрыто —
-        # бронь остаётся в preparing. Это эмуляция параллельного шлюза.
         self.create(equipment=True)
         self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
@@ -219,20 +211,19 @@ class BookingProcessTests(unittest.TestCase):
         event = self.process.send_admin_request(BookingId(1))
         self.assertIsInstance(event, AdminOrderRequested)
 
-        # Подтвердили только комнату — всё ещё preparing.
+        # Подтвердили только комнату всё ещё preparing.
         booking = self.process.confirm_room(BookingId(1))
         self.assertEqual("preparing", booking.state)
         self.assertTrue(booking.room_confirmed)
         self.assertFalse(booking.admin_order_confirmed)
 
-        # Подтвердили заказ — теперь ready.
+        # Подтвердили заказ теперь ready.
         booking = self.process.confirm_admin_order(BookingId(1))
         self.assertEqual("ready", booking.state)
         self.assertTrue(booking.admin_order_confirmed)
 
     def test_admin_branch_not_allowed_when_not_needed(self):
-        # Если ни оборудование, ни кейтеринг не нужны — ветка администратора
-        # не должна запускаться вообще. Это GatewayUnresolved.
+        # Если ни оборудование, ни кейтеринг не нужны - ветка администратора
         self.create()
         self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
@@ -240,10 +231,10 @@ class BookingProcessTests(unittest.TestCase):
         with self.assertRaises(GatewayUnresolved):
             self.process.send_admin_request(BookingId(1))
 
-    # --- Отмена, начало встречи, отметка ---
+    # Отмена, начало встречи, отметка
 
     def test_cancel_before_start(self):
-        # За минуту до старта — можно отменить.
+        # За минуту до старта можно отменить.
         self.create()
         self.prepare_without_approval()
         booking = self.process.cancel_booking(
@@ -252,7 +243,7 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("cancelled", booking.state)
 
     def test_cancel_after_start_is_forbidden(self):
-        # Ровно в момент старта — уже нельзя.
+        # Ровно в момент старта — нельзя.
         self.create()
         self.prepare_without_approval()
         with self.assertRaises(DomainInvariantViolation):
@@ -269,7 +260,7 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("held", booking.state)
 
     def test_no_show_after_15_minutes(self):
-        # Через 15 минут никто не отметился — неявка.
+        # Через 15 минут никто не отметился неявка.
         self.create()
         self.prepare_without_approval()
         self.process.on_meeting_start(BookingId(1), self.start)
@@ -279,10 +270,10 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("no_show", booking.state)
         self.assertIsNotNone(booking.no_show_at)
 
-    # --- Правило трёх неявок ---
+    # Правило трёх неявок
 
     def test_three_no_shows_block_large_room(self):
-        # Три неявки за месяц → крупные комнаты сотруднику недоступны.
+        # Три неявки за месяц крупные комнаты сотруднику недоступны.
         employee = 7
         for i, day in enumerate((1, 2, 3), start=1):
             start = datetime(2026, 10, day, 10, 0)
@@ -302,7 +293,7 @@ class BookingProcessTests(unittest.TestCase):
                 BookingId(i), start + timedelta(minutes=15)
             )
 
-        # Четвёртая заявка — уже в крупную комнату, должна быть отклонена.
+        # Четвёртая заявка уже в крупную комнату, должна быть отклонена.
         fourth_start = datetime(2026, 10, 25, 10, 0)
         self.create(
             booking_id=10,
@@ -318,23 +309,19 @@ class BookingProcessTests(unittest.TestCase):
         self.assertEqual("rejected", booking.state)
         self.assertIn("ограничение", booking.rejection_reason)
 
-    # --- Журнал событий ---
+    # Журнал событий
 
     def test_events_are_recorded_in_aggregate_journal(self):
         # Полный успешный путь без согласования и без админ-заказа:
-        # submitted -> preparing -> ready.
-        # Проверяем, что в журнале агрегата осели нужные доменные события.
         self.create()
         self.process.process_initial_checks(
             BookingId(1), datetime(2026, 10, 19, 12, 0)
         )
         # Забираем то, что накопилось после начальных проверок.
-        # Тут будет событие отправки заявки руководителю либо пусто
-        # (если согласование не требуется — skip_approval событий не пишет).
         initial_events = self.process.pull_events()
         self.assertEqual([], initial_events)
 
-        # А теперь подтверждаем комнату — вот тут появляется RoomConfirmed.
+        # теперь подтверждаем комнату 
         booking = self.process.confirm_room(BookingId(1))
         self.assertEqual("ready", booking.state)
 
@@ -343,7 +330,7 @@ class BookingProcessTests(unittest.TestCase):
             any(isinstance(e, RoomConfirmed) for e in events),
             f"Ожидали RoomConfirmed в журнале, получили: {events}",
         )
-        # На всякий случай проверим, что журнал агрегата пуст после выгрузки.
+        # проверяем, что журнал агрегата пуст после выгрузки.
         self.assertEqual((), booking.events)
 
 

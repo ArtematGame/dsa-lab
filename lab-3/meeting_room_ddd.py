@@ -6,27 +6,22 @@ from dataclasses import dataclass
 from datetime import datetime, time, timedelta
 from typing import Protocol
 
-
 # Доменные исключения
 
 class DomainError(Exception):
     pass
 
-
 # когда объекту-значению дали некорректные данные
 class InvalidValueObject(DomainError):
     pass
-
 
 # Нарушено бизнес-правило, но данные сами по себе корректные
 class DomainInvariantViolation(DomainError):
     pass
 
-
 # Репозиторий не нашёл нужную сущность
 class EntityNotFound(DomainError):
     pass
-
 
 # Событие недопустимо в текущем состоянии
 class TransitionNotAllowed(DomainError):
@@ -37,24 +32,18 @@ class TransitionNotAllowed(DomainError):
             f"Переход недопустим: состояние='{state}', событие='{event}'"
         )
 
-
 # Ни одна ветвь исключающего шлюза не сработала 
 class GatewayUnresolved(DomainError):
     pass
 
-
 # Порт часов чтобы домен и прикладной слой не звали datetime.now()
-
 class Clock(Protocol):
     def now(self) -> datetime: ...
 
-
 # Объекты-значения 
-
 def _check_positive_id(value: int, label: str) -> None:
     if type(value) is not int or value <= 0:
         raise InvalidValueObject(f"{label} должен быть положительным целым числом")
-
 
 @dataclass(frozen=True)
 class RoomId:
@@ -63,7 +52,6 @@ class RoomId:
     def __post_init__(self) -> None:
         _check_positive_id(self.value, "ID комнаты")
 
-
 @dataclass(frozen=True)
 class EmployeeId:
     value: int
@@ -71,14 +59,12 @@ class EmployeeId:
     def __post_init__(self) -> None:
         _check_positive_id(self.value, "ID сотрудника")
 
-
 @dataclass(frozen=True)
 class BookingId:
     value: int
 
     def __post_init__(self) -> None:
         _check_positive_id(self.value, "ID бронирования")
-
 
 @dataclass(frozen=True)
 class Capacity:
@@ -90,7 +76,6 @@ class Capacity:
                 "Вместимость должна быть положительным целым числом"
             )
 
-
 @dataclass(frozen=True)
 class ParticipantCount:
     value: int
@@ -98,7 +83,6 @@ class ParticipantCount:
     def __post_init__(self) -> None:
         if type(self.value) is not int or self.value <= 0:
             raise InvalidValueObject("Количество участников должно быть больше 0")
-
 
 @dataclass(frozen=True)
 class OfficeHours:
@@ -112,7 +96,6 @@ class OfficeHours:
             raise InvalidValueObject(
                 "Время окончания работы должно быть позже начала"
             )
-
 
 @dataclass(frozen=True)
 class BookingPeriod:
@@ -137,7 +120,6 @@ class BookingPeriod:
     def duration(self) -> timedelta:
         return self.end - self.start
 
-
 # Доменные события-сообщения
 
 @dataclass(frozen=True)
@@ -146,7 +128,6 @@ class ApprovalRequested:
     employee_id: EmployeeId
     requested_at: datetime
 
-
 @dataclass(frozen=True)
 class AdminOrderRequested:
     booking_id: BookingId
@@ -154,56 +135,46 @@ class AdminOrderRequested:
     equipment: bool
     catering: bool
 
-
 @dataclass(frozen=True)
 class BookingRejected:
     booking_id: BookingId
     reason: str
 
-
 @dataclass(frozen=True)
 class BookingApproved:
     booking_id: BookingId
 
-
 @dataclass(frozen=True)
 class BookingRejectedByManager:
     booking_id: BookingId
-
 
 @dataclass(frozen=True)
 class ApprovalTimeoutExpired:
     booking_id: BookingId
     occurred_at: datetime
 
-
 @dataclass(frozen=True)
 class RoomConfirmed:
     booking_id: BookingId
 
-
 @dataclass(frozen=True)
 class AdminOrderConfirmed:
     booking_id: BookingId
-
 
 @dataclass(frozen=True)
 class BookingCancelled:
     booking_id: BookingId
     occurred_at: datetime
 
-
 @dataclass(frozen=True)
 class MeetingStarted:
     booking_id: BookingId
     occurred_at: datetime
 
-
 @dataclass(frozen=True)
 class CheckedIn:
     booking_id: BookingId
     occurred_at: datetime
-
 
 @dataclass(frozen=True)
 class NoShowRecorded:
@@ -278,7 +249,7 @@ class MeetingRoom:
                 "Бронирование находится за пределами часов работы офиса"
             )
 
-    # Снимок для in-memory репозитория возвращаем примитивы, чтобы сохранённые данные нельзя было случайно поменять через ссылку.
+    # Снимок для in-memory репозитория возвращаем примитивы
     def snapshot(self) -> dict:
         return {
             "room_id": self._id.value,
@@ -289,18 +260,17 @@ class MeetingRoom:
         }
 
 
-# Паттерн «Состояние». Базовый класс запрещает всё по умолчанию чтобы разрешить событие его надо переопределить в конкретном состоянии
+# Паттерн «Состояние». Базовый класс запрещает всё по умолчанию
 
 class BookingState:
     name = "base"
     is_final = False
 
-    # Универсальный «отказ» методы ниже просто зовут его 
+    # Универсальный «отказ»
     def _not_allowed(self, event: str) -> None:
         raise TransitionNotAllowed(self.name, event)
 
     # Полный список событий из таблицы переходов. Ничего не пропущено любое новое событие автоматом будет запрещено во всех состояниях,
-    # пока разработчик явно не откроет его.
 
     def reject(self, booking: "Booking", reason: str) -> "BookingState":
         self._not_allowed("reject")
@@ -347,7 +317,7 @@ class BookingState:
         self._not_allowed("on_check_in_timeout")
 
 
-# Заявка только что создана: можно отклонить, отправить на согласование или сразу пропустить согласование 
+# Заявка только что создана: отклонить, отправить на согласование или сразу пропустить согласование 
 # (мелкая комната, короткая встреча).
 class SubmittedState(BookingState):
     name = "submitted"
@@ -400,7 +370,6 @@ class UnderApprovalState(BookingState):
 
 
 #  ждём подтверждения комнаты и (если нужно) админ-заказа
-# Переход в ReadyState только когда все нужные ветви закрыты
 class PreparingState(BookingState):
     name = "preparing"
 
@@ -496,7 +465,7 @@ class HeldState(BookingState):
     is_final = True
 
 
-# Словарь «имя состояния - класс». Нужен фабрике восстановления чтобы по строке из БД собрать нужный объект состояния.
+# Словарь «имя состояния - класс». Сбор объекта состояния из БД
 _STATE_TYPES: dict[str, type[BookingState]] = {
     cls.name: cls
     for cls in (
@@ -511,7 +480,6 @@ _STATE_TYPES: dict[str, type[BookingState]] = {
         HeldState,
     )
 }
-
 
 # Агрегат Booking корень агрегата.
 class Booking:
@@ -550,7 +518,6 @@ class Booking:
         self._needs_equipment = needs_equipment
         self._needs_catering = needs_catering
 
-        # Текущее состояние + служебные поля, которые читают/пишут состояния.
         # Всё приватное, снаружи только методы-события.
         self._state: BookingState = SubmittedState()
         self._approval_requested_at: datetime | None = None
@@ -628,8 +595,7 @@ class Booking:
 
     @property
     def blocks_room(self) -> bool:
-        # Занимает ли бронь слот. Финальные состояния (rejected, cancelled,
-        # no_show, held) слот не занимают
+        # Занимает ли бронь слот. Финальные состояния (rejected, cancelled, No_show, held) слот не занимают
         return self.state in {
             "submitted",
             "under_approval",
