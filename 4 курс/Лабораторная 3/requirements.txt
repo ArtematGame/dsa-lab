@@ -1,0 +1,12 @@
+# Веб-фреймворк и сервер
+fastapi==0.115.6
+uvicorn==0.34.0
+# Работа с PostgreSQL: SQLAlchemy Core, синхронный драйвер psycopg, асинхронный asyncpg
+SQLAlchemy==2.0.36
+psycopg[binary]==3.2.3
+asyncpg==0.30.0
+# HTTP-клиенты: requests (синхронная версия), httpx (асинхронная версия и нагрузочный скрипт)
+requests==2.32.3
+httpx==0.28.1
+# Профилировщик
+py-spy==0.4.2

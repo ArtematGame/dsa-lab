@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1120" viewBox="0 0 1000 1120">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#222"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="5" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="70" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">Клиент</text>
+<line x1="70" y1="61" x2="70" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="190" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="255" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">Поиск</text>
+<line x1="255" y1="61" x2="255" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="365" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="430" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">PostgreSQL</text>
+<line x1="430" y1="61" x2="430" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="535" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="600" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">Пост. 1</text>
+<line x1="600" y1="61" x2="600" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="700" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="765" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">Пост. 2</text>
+<line x1="765" y1="61" x2="765" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="860" y="15" width="130" height="46" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="925" y="45" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">Пост. 3</text>
+<line x1="925" y1="61" x2="925" y2="1080" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="70" y1="105" x2="255" y2="105" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="162.5" y="95" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">GET /search</text>
+<rect x="170" y="130" width="810" height="800" fill="none" stroke="#222" stroke-width="1.6"/>
+<rect x="170" y="130" width="62" height="34" fill="white" stroke="#222" stroke-width="1.6"/>
+<text x="201" y="154" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle" font-weight="bold">par</text>
+<line x1="255" y1="190" x2="430" y2="190" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="342.5" y="180" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Рейсы за дату</text>
+<line x1="430" y1="225" x2="255" y2="225" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="342.5" y="215" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Рейсы БД</text>
+<line x1="170" y1="250" x2="980" y2="250" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="255" y1="282" x2="600" y2="282" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="427.5" y="272" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">GET /flights?date=...</text>
+<line x1="600" y1="320" x2="255" y2="320" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="427.5" y="310" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Рейсы / ошибка / тайм-аут</text>
+<rect x="205" y="337" width="760" height="113" fill="none" stroke="#222" stroke-width="1.6"/>
+<text x="220" y="361" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start" font-weight="bold">opt</text>
+<text x="275" y="361" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Ошибка и осталось время в лимите 2 с</text>
+<text x="280" y="389" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Пауза 200 мс; повтор с остатком лимита</text>
+<line x1="255" y1="419" x2="600" y2="419" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="427.5" y="409" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Повтор GET /flights</text>
+<line x1="600" y1="440" x2="255" y2="440" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<line x1="170" y1="460" x2="980" y2="460" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="255" y1="492" x2="765" y2="492" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="510.0" y="482" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">GET /flights?date=...</text>
+<line x1="765" y1="530" x2="255" y2="530" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="510.0" y="520" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Рейсы / ошибка / тайм-аут</text>
+<rect x="205" y="547" width="760" height="113" fill="none" stroke="#222" stroke-width="1.6"/>
+<text x="220" y="571" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start" font-weight="bold">opt</text>
+<text x="275" y="571" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Ошибка и осталось время в лимите 2 с</text>
+<text x="280" y="599" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Пауза 200 мс; повтор с остатком лимита</text>
+<line x1="255" y1="629" x2="765" y2="629" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="510.0" y="619" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Повтор GET /flights</text>
+<line x1="765" y1="650" x2="255" y2="650" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<line x1="170" y1="670" x2="980" y2="670" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5"/>
+<line x1="255" y1="702" x2="925" y2="702" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="590.0" y="692" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">GET /flights?date=...</text>
+<line x1="925" y1="740" x2="255" y2="740" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="590.0" y="730" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Рейсы / ошибка / тайм-аут</text>
+<rect x="205" y="757" width="760" height="113" fill="none" stroke="#222" stroke-width="1.6"/>
+<text x="220" y="781" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start" font-weight="bold">opt</text>
+<text x="275" y="781" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Ошибка и осталось время в лимите 2 с</text>
+<text x="280" y="809" font-family="Arial, sans-serif" font-size="19" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Пауза 200 мс; повтор с остатком лимита</text>
+<line x1="255" y1="839" x2="925" y2="839" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="590.0" y="829" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Повтор GET /flights</text>
+<line x1="925" y1="860" x2="255" y2="860" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<rect x="175" y="945" width="805" height="85" fill="#f5f5f5" stroke="#222" stroke-width="1.6"/>
+<text x="192" y="970" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">На каждого поставщика — 2 с вместе с повтором.</text>
+<text x="192" y="996" font-family="Arial, sans-serif" font-size="21" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">После тайм-аута или двух ошибок он недоступен.</text>
+<text x="192" y="1021" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Все недоступны и БД пуста: 503; нет маршрутов: [].</text>
+<line x1="255" y1="1045" x2="490" y2="1045" stroke="#222" stroke-width="1.6"/>
+<line x1="490" y1="1045" x2="490" y2="1070" stroke="#222" stroke-width="1.6"/>
+<line x1="490" y1="1070" x2="255" y2="1070" stroke="#222" stroke-width="1.6" marker-end="url(#arrow)"/>
+<text x="515" y="1055" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="start">Составить маршруты, выбрать 20</text>
+<line x1="255" y1="1100" x2="70" y2="1100" stroke="#222" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="162.5" y="1090" font-family="Arial, sans-serif" font-size="20" paint-order="stroke" stroke="white" stroke-width="4" text-anchor="middle">Результат</text>
+</svg>

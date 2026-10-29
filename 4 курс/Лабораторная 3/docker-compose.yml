@@ -1,0 +1,71 @@
+name: lab4
+
+
+# Сборка образа из Dockerfile этой папки
+x-python: &python
+  build: .
+  image: lab4:latest
+
+# Проверка готовности веб-сервисов каждые 2 с, до 30 попыток
+x-health: &health
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)"]
+  interval: 2s
+  timeout: 3s
+  retries: 30
+
+# Общие настройки заглушки поставщика тот же образ, но запускается app.provider
+x-provider: &provider
+  <<: *python
+  command: ["uvicorn", "app.provider:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-access-log"]
+  healthcheck: *health
+
+services:
+  # База данных 
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: lab
+      POSTGRES_PASSWORD: lab
+      POSTGRES_DB: flights
+    # Данные хранятся в томе db_data и не пропадают после docker compose down
+    volumes: ["db_data:/var/lib/postgresql/data"]
+    # Проверка готовности базы 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lab -d flights"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  # Три заглушки поставщиков 
+  provider1:
+    <<: *provider
+    environment: {PROVIDER_ID: P1, MEAN_DELAY_MS: "300", JITTER: "0.3", ERROR_RATE: "0.05", SLOW_RATE: "0", FLIGHTS_PER_DAY: "500"}
+  provider2:
+    <<: *provider
+    environment: {PROVIDER_ID: P2, MEAN_DELAY_MS: "500", JITTER: "0.3", ERROR_RATE: "0.05", SLOW_RATE: "0", FLIGHTS_PER_DAY: "500"}
+  provider3:
+    <<: *provider
+    environment: {PROVIDER_ID: P3, MEAN_DELAY_MS: "800", JITTER: "0.3", ERROR_RATE: "0.05", SLOW_RATE: "0.1", FLIGHTS_PER_DAY: "500"}
+
+  # Сервис поиска
+  search:
+    <<: *python
+    environment:
+      # Версия сервиса
+      SERVICE_VERSION: ${SERVICE_VERSION:-sync}
+      # Подключение к базе
+      DATABASE_URL: postgresql+psycopg://lab:lab@db:5432/flights
+      ASYNC_DATABASE_URL: postgresql+asyncpg://lab:lab@db:5432/flights
+    ports: ["127.0.0.1:18040:8000"]
+    # Разрешение ptrace — без него py-spy не может читать память процесса
+    cap_add: [SYS_PTRACE]
+    healthcheck: *health
+    # Запускать только после того, как база и все три заглушки станут healthy
+    depends_on:
+      db: {condition: service_healthy}
+      provider1: {condition: service_healthy}
+      provider2: {condition: service_healthy}
+      provider3: {condition: service_healthy}
+
+volumes:
+  db_data:

@@ -1,0 +1,39 @@
+{
+  "started_utc": "2026-10-20T08:22:51.262631+00:00",
+  "docker": {
+    "ServerVersion": "29.7.2",
+    "NCPU": 10,
+    "MemTotal": 8321515520,
+    "Architecture": "aarch64",
+    "KernelVersion": "6.12.76-linuxkit",
+    "OperatingSystem": "Docker Desktop"
+  },
+  "python": "Python 3.12.15",
+  "packages": [
+    "annotated-types==0.8.0",
+    "anyio==4.15.1",
+    "asyncpg==0.30.0",
+    "certifi==2026.10.18",
+    "charset-normalizer==3.5.2",
+    "click==8.5.0",
+    "fastapi==0.115.6",
+    "greenlet==3.5.6",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httpx==0.28.1",
+    "idna==3.20",
+    "psycopg==3.2.3",
+    "psycopg-binary==3.2.3",
+    "py-spy==0.4.2",
+    "pydantic==2.14.1",
+    "pydantic_core==2.50.1",
+    "requests==2.32.3",
+    "SQLAlchemy==2.0.36",
+    "starlette==0.41.3",
+    "typing-inspection==0.4.4",
+    "typing_extensions==4.16.0",
+    "urllib3==2.8.0",
+    "uvicorn==0.34.0"
+  ],
+  "finished_utc": "2026-10-20T16:08:04.097953+00:00"
+}
