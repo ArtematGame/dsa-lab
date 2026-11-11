@@ -1,0 +1,89 @@
+x-database-url: &database_url postgresql+asyncpg://${POSTGRES_USER:-loyalty}:${POSTGRES_PASSWORD:-loyalty_pass}@postgres:5432/${POSTGRES_DB:-loyalty}
+x-rabbitmq-url: &rabbitmq_url amqp://${RABBITMQ_DEFAULT_USER:-loyalty}:${RABBITMQ_DEFAULT_PASS:-loyalty_pass}@rabbitmq:5672/
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-loyalty}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loyalty_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-loyalty}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-loyalty}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-loyalty_pass}
+    ports:
+      - "15672:15672"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_port_listener 5672"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  worker:
+    build: ./worker
+    environment:
+      DATABASE_URL: *database_url
+      RABBITMQ_URL: *rabbitmq_url
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: *database_url
+      RABBITMQ_URL: *rabbitmq_url
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      worker:
+        condition: service_started
+
+  notifier:
+    build: ./notifier
+    ports:
+      - "8001:8001"
+    environment:
+      RABBITMQ_URL: *rabbitmq_url
+      MIN_DELAY_MS: "200"
+      MAX_DELAY_MS: "1500"
+      UNSUBSCRIBED: C2002
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  analytics:
+    build: ./analytics
+    ports:
+      - "8002:8002"
+    environment:
+      RABBITMQ_URL: *rabbitmq_url
+    restart: unless-stopped
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  rabbitmqdata:
