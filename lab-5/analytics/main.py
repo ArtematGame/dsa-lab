@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException
 
 RABBITMQ_URL = os.environ["RABBITMQ_URL"]
 
+# Настройка журналирования и хранение статистики в памяти.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("analytics")
 
@@ -17,6 +18,7 @@ stats = {"events_received": 0}
 
 
 def new_store(store_id):
+    # Начальные счётчики нового магазина.
     return {
         "store_id": store_id,
         "purchases_applied": 0,
@@ -30,6 +32,7 @@ def new_store(store_id):
 
 
 def handle(event):
+    # Учёт события и обновление показателей магазина.
     stats["events_received"] += 1
     store = stores.setdefault(event["store_id"], new_store(event["store_id"]))
     if event["status"] == "rejected":
@@ -47,6 +50,7 @@ def handle(event):
 
 
 async def consume(queue):
+    # Получение событий из очереди с подтверждением после обработки.
     async with queue.iterator() as messages:
         async for message in messages:
             async with message.process(requeue=True):
@@ -55,6 +59,7 @@ async def consume(queue):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Подключение к RabbitMQ и подписка на события программы лояльности.
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=1)
@@ -74,11 +79,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+# Статистика по всем магазинам.
 @app.get("/stores")
 async def get_stores():
     return list(stores.values())
 
 
+# Статистика магазина или ответ 404 при отсутствии событий.
 @app.get("/stores/{store_id}")
 async def get_store(store_id: str):
     if store_id not in stores:
@@ -86,6 +93,7 @@ async def get_store(store_id: str):
     return stores[store_id]
 
 
+# Общее число обработанных событий.
 @app.get("/stats")
 async def get_stats():
     return stats

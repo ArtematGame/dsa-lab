@@ -1,7 +1,9 @@
 from sqlalchemy import Column, DateTime, Integer, MetaData, Numeric, String, Table
 
+# Описание таблиц PostgreSQL, используемых API.
 metadata = MetaData()
 
+# Таблица текущих балансов покупателей.
 accounts = Table(
     "accounts",
     metadata,
@@ -9,6 +11,7 @@ accounts = Table(
     Column("balance", Integer, nullable=False),
 )
 
+# Таблица результатов обработки операций.
 operations = Table(
     "operations",
     metadata,

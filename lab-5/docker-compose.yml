@@ -1,7 +1,9 @@
+# Общие URL подключения к базе данных и RabbitMQ.
 x-database-url: &database_url postgresql+asyncpg://${POSTGRES_USER:-loyalty}:${POSTGRES_PASSWORD:-loyalty_pass}@postgres:5432/${POSTGRES_DB:-loyalty}
 x-rabbitmq-url: &rabbitmq_url amqp://${RABBITMQ_DEFAULT_USER:-loyalty}:${RABBITMQ_DEFAULT_PASS:-loyalty_pass}@rabbitmq:5672/
 
 services:
+  # База данных счетов покупателей и результатов операций.
   postgres:
     image: postgres:17
     environment:
@@ -15,6 +17,7 @@ services:
       interval: 3s
       retries: 30
 
+  # Брокер сообщений для связи между сервисами.
   rabbitmq:
     image: rabbitmq:4-management
     hostname: rabbitmq
@@ -31,6 +34,7 @@ services:
       timeout: 10s
       retries: 30
 
+  # Обработка операций и обновление базы данных.
   worker:
     build: ./worker
     environment:
@@ -43,6 +47,7 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  # Приём запросов и выдача результатов.
   api:
     build: ./api
     ports:
@@ -59,6 +64,7 @@ services:
       worker:
         condition: service_started
 
+  # Формирование уведомлений о результатах операций.
   notifier:
     build: ./notifier
     ports:
@@ -73,6 +79,7 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  # Сбор статистики по событиям.
   analytics:
     build: ./analytics
     ports:
@@ -84,6 +91,7 @@ services:
       rabbitmq:
         condition: service_healthy
 
+# Тома для хранения данных после перезапуска контейнеров.
 volumes:
   pgdata:
   rabbitmqdata:

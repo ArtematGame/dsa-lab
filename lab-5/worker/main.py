@@ -15,11 +15,13 @@ RABBITMQ_URL = os.environ["RABBITMQ_URL"]
 
 QUORUM = {"x-queue-type": "quorum"}
 
+# Настройка журналирования фонового обработчика.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("worker")
 
 
 def to_event(row):
+    # Подготовка данных результата для рассылки подписчикам.
     return {
         "operation_id": row["operation_id"],
         "type": row["type"],
@@ -34,6 +36,7 @@ def to_event(row):
 
 
 async def process(engine, data):
+    # Проверка повтора, применение операции и сохранение результата в транзакции.
     operation = Operation.from_dict(data)
     async with engine.begin() as conn:
         saved = await db.get_operation(conn, operation.operation_id)
@@ -49,6 +52,7 @@ async def process(engine, data):
 
 
 async def declare(channel):
+    # Очереди и обменники для входящих операций и исходящих событий.
     loyalty = await channel.declare_exchange("loyalty", aio_pika.ExchangeType.DIRECT, durable=True)
     queue = await channel.declare_queue("operations", durable=True, arguments=QUORUM)
     await queue.bind(loyalty, routing_key="operation")
@@ -62,6 +66,7 @@ async def declare(channel):
 
 
 async def publish_event(events, event):
+    # Публикация результата обработки в общий обменник событий.
     message = aio_pika.Message(
         body=json.dumps(event).encode("utf-8"),
         content_type="application/json",
@@ -72,6 +77,7 @@ async def publish_event(events, event):
 
 
 async def main():
+    # Подготовка базы данных, подключение к брокеру и обработка очереди.
     engine = create_async_engine(DATABASE_URL)
     async with engine.begin() as conn:
         await conn.run_sync(db.metadata.create_all)

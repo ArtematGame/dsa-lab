@@ -4,8 +4,10 @@ from sqlalchemy.dialects.postgresql import insert
 
 from domain import APPLIED, Purchase
 
+# Структура таблиц и запросы для worker.
 metadata = MetaData()
 
+# Таблица текущих балансов покупателей.
 accounts = Table(
     "accounts",
     metadata,
@@ -13,6 +15,7 @@ accounts = Table(
     Column("balance", Integer, nullable=False),
 )
 
+# Таблица операций и индексы для поиска по покупателю и чеку.
 operations = Table(
     "operations",
     metadata,
@@ -34,11 +37,13 @@ operations = Table(
 
 
 async def get_operation(conn, operation_id):
+    # Проверка, была ли операция обработана ранее.
     query = select(operations).where(operations.c.operation_id == operation_id)
     return (await conn.execute(query)).mappings().first()
 
 
 async def lock_balance(conn, customer_id):
+    # Создание счёта при необходимости и его блокировка на время транзакции.
     await conn.execute(
         insert(accounts)
         .values(customer_id=customer_id, balance=0)
@@ -49,6 +54,7 @@ async def lock_balance(conn, customer_id):
 
 
 async def find_applied(conn, operation_type, check_number):
+    # Поиск применённой операции по типу и номеру чека.
     query = select(operations.c.customer_id, operations.c.points_delta).where(
         operations.c.type == operation_type,
         operations.c.check_number == check_number,
@@ -58,15 +64,18 @@ async def find_applied(conn, operation_type, check_number):
 
 
 async def find_purchase(conn, check_number):
+    # Данные покупки, на которую ссылается возврат.
     row = await find_applied(conn, "purchase", check_number)
     return Purchase(row.customer_id, row.points_delta) if row else None
 
 
 async def is_returned(conn, check_number):
+    # Проверка наличия возврата по этому чеку.
     return await find_applied(conn, "return", check_number) is not None
 
 
 async def save_result(conn, operation, result, processed_at):
+    # Сохранение результата операции и нового баланса в одной транзакции.
     await conn.execute(
         operations.insert().values(
             operation_id=operation.operation_id,

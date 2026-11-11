@@ -15,6 +15,7 @@ MIN_DELAY_MS = int(os.getenv("MIN_DELAY_MS", "200"))
 MAX_DELAY_MS = int(os.getenv("MAX_DELAY_MS", "1500"))
 UNSUBSCRIBED = {item.strip() for item in os.getenv("UNSUBSCRIBED", "").split(",") if item.strip()}
 
+# Хранение уведомлений и счётчиков в памяти процесса.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("notifier")
 
@@ -23,6 +24,7 @@ stats = {"events_received": 0, "notifications_sent": 0}
 
 
 def points_word(number):
+    # Выбор правильной формы слова «балл».
     number = abs(number)
     if number % 10 == 1 and number % 100 != 11:
         return "балл"
@@ -32,6 +34,7 @@ def points_word(number):
 
 
 def make_text(event):
+    # Формирование сообщения по результату операции.
     if event["status"] == "rejected":
         return f"Операция отклонена: {event['reject_reason']}"
     delta = event["points_delta"]
@@ -41,6 +44,7 @@ def make_text(event):
 
 
 async def handle(event):
+    # Пропуск отписавшихся покупателей и добавление остальных в список уведомлений.
     stats["events_received"] += 1
     customer_id = event["customer_id"]
     if customer_id in UNSUBSCRIBED:
@@ -58,6 +62,7 @@ async def handle(event):
 
 
 async def consume(queue):
+    # Получение и последовательная обработка событий из очереди.
     async with queue.iterator() as messages:
         async for message in messages:
             async with message.process(requeue=True):
@@ -66,6 +71,7 @@ async def consume(queue):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Подключение к обменнику событий и запуск потребителя очереди.
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=1)
@@ -85,11 +91,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+# Уведомления выбранного покупателя.
 @app.get("/notifications")
 async def get_notifications(customer_id: str):
     return notifications.get(customer_id, [])
 
 
+# Счётчики событий и отправленных уведомлений.
 @app.get("/stats")
 async def get_stats():
     return stats

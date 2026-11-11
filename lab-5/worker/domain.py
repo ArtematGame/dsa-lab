@@ -5,10 +5,12 @@ from decimal import ROUND_FLOOR, Decimal
 ACCRUAL_RATE = Decimal("0.05")
 REDEEM_LIMIT_RATE = Decimal("0.30")
 
+# Статусы результата операции.
 APPLIED = "applied"
 REJECTED = "rejected"
 
 
+# Доменная модель операции после преобразования JSON.
 @dataclass(frozen=True)
 class Operation:
     operation_id: str
@@ -22,6 +24,7 @@ class Operation:
 
     @classmethod
     def from_dict(cls, data):
+        # Преобразование входных значений к типам доменной модели.
         amount = data.get("amount")
         return cls(
             operation_id=data["operation_id"],
@@ -35,12 +38,14 @@ class Operation:
         )
 
 
+# Данные исходной покупки для проверки возврата.
 @dataclass(frozen=True)
 class Purchase:
     customer_id: str
     points: int
 
 
+# Результат применения операции к балансу.
 @dataclass(frozen=True)
 class Result:
     status: str
@@ -50,18 +55,22 @@ class Result:
 
 
 def accrual_points(amount):
+    # Начисление 5 процентов с отбрасыванием дробной части.
     return int((amount * ACCRUAL_RATE).to_integral_value(rounding=ROUND_FLOOR))  # дробь отбрасывается
 
 
 def applied(balance, delta):
+    # Результат успешно применённой операции.
     return Result(APPLIED, delta, balance + delta, None)
 
 
 def rejected(balance, reason):
+    # Результат отклонённой операции без изменения баланса.
     return Result(REJECTED, 0, balance, reason)
 
 
 def apply_operation(operation, balance, purchase, returned):
+    # Проверка правил операции и вычисление изменения баланса.
     if operation.type == "purchase":
         if purchase is not None:
             return rejected(balance, "duplicate_purchase")

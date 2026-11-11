@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 
+# Проверка полей операции перед отправкой в очередь.
 class OperationIn(BaseModel):
     operation_id: str = Field(min_length=1)
     type: Literal["purchase", "return", "redeem"]
@@ -17,6 +18,7 @@ class OperationIn(BaseModel):
 
     @model_validator(mode="after")
     def check_fields(self):
+        # Проверка обязательных полей для каждого типа операции.
         if self.type == "return":
             if self.amount is not None:
                 raise ValueError("amount must be absent for return")

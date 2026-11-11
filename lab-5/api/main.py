@@ -19,6 +19,7 @@ PUBLISH_TIMEOUT_S = 5
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Подключение к базе данных и настройка очереди операций в RabbitMQ.
     app.state.engine = create_async_engine(DATABASE_URL)
     app.state.connection = await aio_pika.connect_robust(RABBITMQ_URL)
     channel = await app.state.connection.channel(publisher_confirms=True, on_return_raises=True)
@@ -39,6 +40,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 def to_result(row):
+    # Преобразование строки базы данных в JSON-совместимый ответ.
     return {
         "operation_id": row["operation_id"],
         "type": row["type"],
@@ -54,6 +56,7 @@ def to_result(row):
 
 @app.post("/operations", status_code=202)
 async def create_operation(operation: OperationIn, request: Request):
+    # Публикация проверенной операции в очередь для асинхронной обработки.
     message = aio_pika.Message(
         body=operation.model_dump_json(exclude_none=True).encode("utf-8"),
         content_type="application/json",
@@ -71,6 +74,7 @@ async def create_operation(operation: OperationIn, request: Request):
 
 @app.get("/operations/{operation_id}")
 async def get_operation(operation_id: str, request: Request):
+    # Поиск результата обработки операции в базе данных.
     query = select(operations).where(operations.c.operation_id == operation_id)
     async with request.app.state.engine.connect() as conn:
         row = (await conn.execute(query)).mappings().first()
@@ -81,6 +85,7 @@ async def get_operation(operation_id: str, request: Request):
 
 @app.get("/accounts/{customer_id}")
 async def get_account(customer_id: str, request: Request):
+    # Баланс покупателя и список последних операций.
     async with request.app.state.engine.connect() as conn:
         balance = (await conn.execute(
             select(accounts.c.balance).where(accounts.c.customer_id == customer_id)
@@ -102,6 +107,7 @@ async def get_account(customer_id: str, request: Request):
 
 @app.get("/health")
 async def health(request: Request):
+    # Проверка доступности базы данных и соединения с брокером.
     checks = {"database": "ok", "broker": "ok"}
     try:
         async with request.app.state.engine.connect() as conn:
